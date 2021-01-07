@@ -1,7 +1,5 @@
 package com.miguel.controller;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +16,11 @@ import com.azure.data.cosmos.PartitionKey;
 import com.miguel.model.Persona;
 import com.miguel.repo.IPersonaRepo;
 
+import io.reactivex.Flowable;
 import io.reactivex.Single;
+import reactor.adapter.rxjava.RxJava2Adapter;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/personas")
@@ -30,76 +32,95 @@ public class PersonaController {
 	private IPersonaRepo repo;
 
 	@GetMapping
-	public Single<List<Persona>> listar() {
+	public Flowable<Persona> listar() {
 //		return repo.findAll(apellido);
-		List<Persona> listPers = repo.findAll().collectList().block();
+//		List<Persona> listPers = repo.findAll().collectList().block();
 
-		return Single.create(singleSubscriber -> {
+		Flux<Persona> flux = repo.findAll();
+		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
 
-			singleSubscriber.onSuccess(listPers);
-		});
+		return flowable;
+//		return Single.create(singleSubscriber -> {
+//
+//			singleSubscriber.onSuccess(listPers);
+//		});
 
 	}
 
 	@GetMapping("/{apellido}")
-	public Single<List<Persona>> listarporPK(@PathVariable("apellido") PartitionKey apellido) {
+	public Flowable<Persona> listarporPK(@PathVariable("apellido") PartitionKey apellido) {
 //		return repo.findAll(apellido);
-		List<Persona> listPers = repo.findAll(apellido).collectList().block();
 
-		return Single.create(singleSubscriber -> {
+//		List<Persona> listPers = repo.findAll(apellido).collectList().block();
+		Flux<Persona> flux = repo.findAll(apellido);
+		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
 
-			singleSubscriber.onSuccess(listPers);
-		});
+		return flowable;
 
 	}
 
 	@GetMapping("/{nombre}")
-	public Single<List<Persona>> listarporNombre(@PathVariable("nombre") String nombre) {
+	public Flowable<Persona> listarporNombre(@PathVariable("nombre") String nombre) {
 //		return repo.findAll(apellido);
-		List<Persona> listPers = repo.findByNombre(nombre).collectList().block();
+//		List<Persona> listPers = repo.findByNombre(nombre).collectList().block();
 
-		return Single.create(singleSubscriber -> {
+		Flux<Persona> flux = repo.findByNombre(nombre);
+		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
 
-			singleSubscriber.onSuccess(listPers);
-		});
+		return flowable;
 
 	}
 
 	@GetMapping("/{id}")
 	public Single<Persona> listarPorId(@PathVariable("id") String idPersona) {
-		Persona pers = repo.findById(idPersona).block();
-		return Single.create(singleSubscriber -> {
+//		Persona pers = repo.findById(idPersona).block();
+//		return Single.create(singleSubscriber -> {
+//
+//			singleSubscriber.onSuccess(pers);
+//		});
 
-			singleSubscriber.onSuccess(pers);
-		});
+		Mono<Persona> mono = repo.findById(idPersona);
+		Single<Persona> single = RxJava2Adapter.monoToSingle(mono);
+		return single;
+
 	}
 
 	@PostMapping
 	public Single<Persona> registrar(@RequestBody Persona per) {
 
-		return Single.create(singleSubscriber -> {
+//		return Single.create(singleSubscriber -> {
+//
+//			singleSubscriber.onSuccess(repo.save(per).block());
+//		});
+//		
 
-			singleSubscriber.onSuccess(repo.save(per).block());
-		});
+		Mono<Persona> mono = repo.save(per);
+		Single<Persona> single = RxJava2Adapter.monoToSingle(mono);
+		return single;
 
 	}
 
+	// [verificar la operacion reactiva crud ]
 	@PutMapping
 	public Single<Persona> modificar(@RequestBody Persona per) {
 
-		return Single.create(singleSubscriber -> {
+		Mono<Persona> mono = repo.save(per);
+		Single<Persona> single = RxJava2Adapter.monoToSingle(mono);
+		return single;
 
-			singleSubscriber.onSuccess(repo.save(per).block());
-		});
 	}
 
 	@DeleteMapping("/{id}")
 	public Single<Void> eliminar(@PathVariable("id") String idPersona) {
 
-		return Single.create(singleSubscriber -> {
+//		return Single.create(singleSubscriber -> {
+//
+//			singleSubscriber.onSuccess(repo.deleteById(idPersona).block());
+//		});
 
-			singleSubscriber.onSuccess(repo.deleteById(idPersona).block());
-		});
+		Mono<Void> monoVoid = repo.deleteById(idPersona);
+		Single<Void> single = RxJava2Adapter.monoToSingle(monoVoid);
+		return single;
 
 	}
 
