@@ -1,7 +1,5 @@
 package com.miguel.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,27 +17,23 @@ import com.miguel.repo.IPersonaRepo;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import reactor.adapter.rxjava.RxJava2Adapter;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/personas")
 public class PersonaController {
 
-	private static final Logger Log = LoggerFactory.getLogger(PersonaController.class);
+//	private static final Logger Log = LoggerFactory.getLogger(PersonaController.class);
 
 	@Autowired
 	private IPersonaRepo repo;
 
-	@GetMapping
+	// +
+	@GetMapping("/lista")
 	public Flowable<Persona> listar() {
 //		return repo.findAll(apellido);
 //		List<Persona> listPers = repo.findAll().collectList().block();
 
-		Flux<Persona> flux = repo.findAll();
-		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
-
-		return flowable;
+		return RxJava2Adapter.fluxToFlowable(repo.findAll());
 //		return Single.create(singleSubscriber -> {
 //
 //			singleSubscriber.onSuccess(listPers);
@@ -47,44 +41,62 @@ public class PersonaController {
 
 	}
 
-	@GetMapping("/{apellido}")
-	public Flowable<Persona> listarporPK(@PathVariable("apellido") PartitionKey apellido) {
-//		return repo.findAll(apellido);
+//	@GetMapping("/{apellido}")
+////	@GetMapping(value = "{apellido}")
+//	public Flowable<Persona> listarporPK(@PathVariable("apellido") PartitionKey apellido) {
+////		return repo.findAll(apellido);
+//
+////		List<Persona> listPers = repo.findAll(apellido).collectList().block();
+////		Flux<Persona> flux = repo.findAll(apellido);
+////		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
+//
+//		return RxJava2Adapter.fluxToFlowable(repo.findAll(apellido));
+//
+//	}
 
-//		List<Persona> listPers = repo.findAll(apellido).collectList().block();
-		Flux<Persona> flux = repo.findAll(apellido);
-		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
+	// [hacer un if dentro: si nombre existe tall ...si id existe tall ..en un solo
+	// metodo]
 
-		return flowable;
+//	@GetMapping("/nombre/{nom}")
+//	public Flowable<Persona> listarporNombre(@PathVariable("nom") String nombre) {
+////		return repo.findAll(apellido);
+////		List<Persona> listPers = repo.findByNombre(nombre).collectList().block();
+//
+//		return RxJava2Adapter.fluxToFlowable(repo.findByNombre(nombre));
+//
+//	}
 
-	}
-
-	@GetMapping("/{nombre}")
-	public Flowable<Persona> listarporNombre(@PathVariable("nombre") String nombre) {
+	@GetMapping("/nombre")
+	public Flowable<Persona> listarporNombre(String nombre) {
 //		return repo.findAll(apellido);
 //		List<Persona> listPers = repo.findByNombre(nombre).collectList().block();
 
-		Flux<Persona> flux = repo.findByNombre(nombre);
-		Flowable<Persona> flowable = RxJava2Adapter.fluxToFlowable(flux);
-
-		return flowable;
+		return RxJava2Adapter.fluxToFlowable(repo.findByNombre(nombre));
 
 	}
 
-	@GetMapping("/{id}")
-	public Single<Persona> listarPorId(@PathVariable("id") String idPersona) {
+	@GetMapping("/apellido")
+	public Flowable<Persona> listarporKP(PartitionKey apellido) {
+//		return repo.findAll(apellido);
+//		List<Persona> listPers = repo.findByNombre(nombre).collectList().block();
+
+		return RxJava2Adapter.fluxToFlowable(repo.findAll(apellido));
+
+	}
+
+	@GetMapping("/id/{idPersona}")
+	public Single<Persona> listarPorId(@PathVariable("idPersona") String id) {
 //		Persona pers = repo.findById(idPersona).block();
 //		return Single.create(singleSubscriber -> {
 //
 //			singleSubscriber.onSuccess(pers);
 //		});
 
-		Mono<Persona> mono = repo.findById(idPersona);
-		Single<Persona> single = RxJava2Adapter.monoToSingle(mono);
-		return single;
+		return RxJava2Adapter.monoToSingle(repo.findById(id));
 
 	}
 
+	// +
 	@PostMapping
 	public Single<Persona> registrar(@RequestBody Persona per) {
 
@@ -93,10 +105,7 @@ public class PersonaController {
 //			singleSubscriber.onSuccess(repo.save(per).block());
 //		});
 //		
-
-		Mono<Persona> mono = repo.save(per);
-		Single<Persona> single = RxJava2Adapter.monoToSingle(mono);
-		return single;
+		return RxJava2Adapter.monoToSingle(repo.save(per));
 
 	}
 
@@ -104,9 +113,7 @@ public class PersonaController {
 	@PutMapping
 	public Single<Persona> modificar(@RequestBody Persona per) {
 
-		Mono<Persona> mono = repo.save(per);
-		Single<Persona> single = RxJava2Adapter.monoToSingle(mono);
-		return single;
+		return RxJava2Adapter.monoToSingle(repo.save(per));
 
 	}
 
@@ -118,9 +125,7 @@ public class PersonaController {
 //			singleSubscriber.onSuccess(repo.deleteById(idPersona).block());
 //		});
 
-		Mono<Void> monoVoid = repo.deleteById(idPersona);
-		Single<Void> single = RxJava2Adapter.monoToSingle(monoVoid);
-		return single;
+		return RxJava2Adapter.monoToSingle(repo.deleteById(idPersona));
 
 	}
 
