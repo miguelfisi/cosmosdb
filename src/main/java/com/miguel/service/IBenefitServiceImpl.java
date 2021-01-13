@@ -17,6 +17,8 @@ import com.miguel.repo.IClientePorPersonId;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import reactor.adapter.rxjava.RxJava2Adapter;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class IBenefitServiceImpl implements IBenefitService {
@@ -48,12 +50,17 @@ public class IBenefitServiceImpl implements IBenefitService {
 	@Override
 	public Flowable<BeneficioPorBenefitId> obtenerBeneficios(String id) {
 
-		return RxJava2Adapter.fluxToFlowable(
-				iBeneficioPorBenefitIdRepo.findBySegment(iClientePorPersonIdRepo.findById(id).block().getSegment()));
-		
-		
-		//crear Single con el segmento (String) ??
-		
+//		return RxJava2Adapter.fluxToFlowable(
+//				iBeneficioPorBenefitIdRepo.findBySegment(iClientePorPersonIdRepo.findById(id).block().getSegment()));
+//		return RxJava2Adapter.fluxToFlowable();
+
+		Mono<Flux<BeneficioPorBenefitId>> mono = iClientePorPersonIdRepo.findById(id)
+				.map(x -> iBeneficioPorBenefitIdRepo.findBySegment(x.getSegment()));
+
+		Single<Flux<BeneficioPorBenefitId>> single = RxJava2Adapter.monoToSingle(mono);
+		Flux<BeneficioPorBenefitId> flux = single.blockingGet();
+
+		return RxJava2Adapter.fluxToFlowable(flux);
 
 	}
 
